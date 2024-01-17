@@ -1,51 +1,64 @@
 "use strict"
-function DataTable(config, data) {
+async function DataTable(config) {
   const tableDiv = document.querySelector(config.parent);
+  tableDiv.classList.add("parent")
   const table = document.createElement("table");
   tableDiv.appendChild(table);
-  table.setAttribute("class","table");
-  const initialId = getFirstId(data);
+  table.classList.add("table");
   
+  const data = await getServerData(config);
+  console.log(data.length + " length");
+
+  // console.log("fish");
+  // console.log(data);
+  // const initialId = getFirstId(data);
   createTitleRow(table, config);
-  createMainRows(table, config, data, initialId);
-  setupSortingEvents(table, users, config, initialId);
+  createMainRows(table, config, data);
+  // setupSortingEvents(table, data, config);
 }
  
 const config1 = {
   parent: '#usersTable',
   columns: [
+    // console.log(user);
     {title: 'Ім’я', value: 'name'},
     {title: 'Прізвище', value: 'surname'},
-    {title: 'Вік', value: 'age'},
-  ]
+    {title: 'Вік', value: (user) => getAge(user.birthday)}, // функцію getAge вам потрібно створити
+    {title: 'Фото', value: (user) => `<img src="${user.avatar}" alt="${user.name} ${user.surname}"/>`} 
+  ],
+  apiUrl: "https://mock-api.shpp.me/bbilokin/users"
 };
- 
-const users = [
-  {id: 30050, name: 'Вася', surname: 'Петров', age: 12},
-  {id: 30051, name: 'Вася', surname: 'Васечкін', age: 15},
-  {id: 30052, name: 'Ігор', surname: 'Ігоренко', age: 25},
-  {id: 30053, name: 'Ольга', surname: 'Олійник', age: 30},
-  {id: 30054, name: 'Михайло', surname: 'Михайлик', age: 18},
-  {id: 30055, name: 'Ірина', surname: 'Іванова', age: 22},
-  {id: 30056, name: 'Петро', surname: 'Петренко', age: 35},
-  {id: 30057, name: 'Оксана', surname: 'Оксенчук', age: 28},
-  {id: 30058, name: 'Андрій', surname: 'Андрійчук', age: 19},
-  {id: 30059, name: 'Тетяна', surname: 'Тетянчук', age: 40},
-  {id: 30060, name: 'Сергій', surname: 'Сергієнко', age: 32},
-  {id: 30061, name: 'Наталія', surname: 'Наталюк', age: 29},
-  {id: 30062, name: 'Дмитро', surname: 'Дмитренко', age: 24},
-  {id: 30063, name: 'Людмила', surname: 'Людвіга', age: 27},
-  {id: 30064, name: 'Максим', surname: 'Максимович', age: 31},
-  {id: 30065, name: 'Галина', surname: 'Галенко', age: 23},
-  {id: 30066, name: 'Євген', surname: 'Євгенчук', age: 26},
-  {id: 30067, name: 'Катерина', surname: 'Катеринчук', age: 33},
-  {id: 30068, name: 'Роман', surname: 'Романович', age: 17},
-  {id: 30069, name: 'Анна', surname: 'Анненко', age: 20}
-];
 
+function getAge(age){
+  return age;
+}
 
-DataTable(config1, users);
-DataTable(config1, users);
+const config2 = {
+  parent: '#productsTable',
+  columns: [
+    {title: 'Назва', value: 'title'},
+    {title: 'Ціна', value: (product) => `${product.price} ${product.currency}`},
+    {title: 'Колір', value: (product) => getColorLabel(product.color)}, // функцію getColorLabel вам потрібно створити
+  ],
+  apiUrl: "https://mock-api.shpp.me/bbilokin/products"
+};
+
+DataTable(config1);
+// DataTable(config2);
+
+async function getServerData (config) {
+  try {
+    const serverResponse = await fetch(config.apiUrl);
+
+    const servereData = await serverResponse.json();
+    console.log(servereData);
+    console.log(servereData.data["1"]["name"] + " length");
+
+    return servereData;
+  } catch (error) {
+    // console.log("Fetch error:", error);
+  } 
+}
 
 function createTitleRow(table, config) {
   let thead = document.createElement("thead");
@@ -65,7 +78,6 @@ function createTitleRow(table, config) {
     const th = document.createElement("th");
     const node = document.createTextNode(config.columns[i - 1].title);
     th.appendChild(node);
-    th.classList.add(config.columns[i - 1].value);
     titleRow.appendChild(th);
 
     addArrowImg(th);
@@ -82,27 +94,30 @@ function addArrowImg(cell) {
   cell.appendChild(arrowUp);
 }
 
-function createMainRows(table, config, data, initialId) { // Create rows for table body
-  let tbody = document.createElement("tbody");
+function createMainRows(table, config, data) { // Create rows for table body
+  const tbody = document.createElement("tbody");
   table.appendChild(tbody);
-
+  const allUsersList = data.data;
   // Create row
-  for(let i = 0; i < data.length; i++){
+  console.log(data.length + " length");
+  let i = 0;
+  for (let row in allUsersList) {
     const tableRow = tbody.insertRow(i);
-
     const numberTd = document.createElement("td");
-    const numberTdNode = document.createTextNode((data[i].id - initialId) + 1 ); // Calculation of numbers depending on first element id
+    const numberTdNode = document.createTextNode(i + 1);
     numberTd.appendChild(numberTdNode);
     tableRow.appendChild(numberTd);
-
+    
     // Create sells
-    for(let j = 1; j <= config.columns.length; j++){
+    for(let cell in allUsersList[row]){
+      console.log(allUsersList[row][cell]);
       const td = document.createElement("td");
-      const columnValue = config.columns[j - 1].value; // get value from config to use them like a key while creating node
-      const node = document.createTextNode(data[i][columnValue]);
+      const columnValue = config.columns[cell].value;
+      const node = document.createTextNode(allUsersList[row][columnValue]);
       td.appendChild(node);
       tableRow.appendChild(td);
-    }   
+    }
+    i++; 
   }
 }
 
@@ -118,14 +133,14 @@ function setupSortingEvents(table, data, config, initialId){
     const image = this.querySelector("img");
     let valueToCompare = this.className;
 
-    if(valueToCompare === "age" || valueToCompare === "id"){
+    if(typeof +valueToCompare === "number"){
       sortNumbers(data, image, valueToCompare);
     } else {
       sortStrings(data, image, valueToCompare);
     }
     
-    console.log(data);
-    createMainRows(table, config, data, initialId); // Rewrite body of the table
+    // console.log(data);
+    createMainRows(table, config, data); // Rewrite body of the table
   }
 }
 
