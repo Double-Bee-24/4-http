@@ -1,0 +1,75 @@
+#usersTable {
+    position: relative;
+    margin: 150px auto 0;
+    max-width: 1440px;
+    height: auto;
+}
+
+.table {
+    border-collapse: collapse;
+    border: none;
+    border-radius: 10px;
+    width: 100%;  
+    height: auto;
+    margin: 50px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 -4px 8px rgba(0, 0, 0, 0.1), 4px 0 8px rgba(0, 0, 0, 0.1), -4px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+th {
+    background-color: #6c7ae0;
+    border: 1px solid #dddddd;
+    padding: 8px;
+    text-align: left;
+    font-family: 'Lato', sans-serif;
+    color: white;
+    border: none;
+    font-weight: 800;
+}
+
+td {
+    border: 1px solid #dddddd;
+    padding: 8px;
+    font-family: system-ui;
+    color: gray;
+    border: none;
+}
+
+td,th {
+    line-height: 34px;
+    font-size: 19px;
+    position: relative;
+}
+  
+tr:nth-child(even) {
+    background-color: #f8f6ff;
+}
+
+th:first-child {
+    border-top-left-radius: 10px;
+}
+
+th:last-child {
+    border-top-right-radius: 10px;
+}
+
+th:first-child, td:first-child {
+    padding-left: 20px;
+    width: 70px;
+}  
+
+tr:hover {
+    background-color: #e0e0e0;
+    cursor: pointer;
+}
+
+th:hover {
+    background-color: #4b5ac0;
+}
+
+img {
+    width: 12px;
+    height: 12px;
+    position: absolute;
+    right: 15px;
+    top: 20px;
+}
