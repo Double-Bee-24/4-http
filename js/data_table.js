@@ -41,7 +41,6 @@ function addInputRow(tableDiv, config) {
         const inputsList = column.input;
         console.log(JSON.stringify(inputsList));
         console.log("doubledoor");
-        // alert("a");
 
         for(const inputElement in inputsList){
             const input = document.createElement("input");
@@ -88,7 +87,6 @@ function createTableHead(table, config) {
         th.appendChild(node);
         titleRow.appendChild(th);
 
-        // alert(console.columnsTitle);
         if (config.columns[i - 1].title !== "Фото") {
             addArrowImg(th);
         }
@@ -172,7 +170,6 @@ function createTableBody(table, config, data) { // Create rows for table body
 }
 
 async function deleteItem(itemId, table, config) {
-    // alert('Deleting item with id: ' + itemId);
     console.log(table.querySelector("tbody"))
     console.log("squirell");
 
