@@ -41,7 +41,7 @@ function addInputRow(tableDiv, config) {
         const inputsList = column.input;
         console.log(JSON.stringify(inputsList));
         console.log("doubledoor");
-        alert("a");
+        // alert("a");
 
         for(const inputElement in inputsList){
             const input = document.createElement("input");
