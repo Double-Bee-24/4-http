@@ -7,7 +7,7 @@ Data tables is a Javascipt library for creating tables with particular configura
 To get a copy of this repository, open terminal and enter next command:
 
 ```bash
-git clone https://github.com/Double-Bee-24/3-data-tables.git
+git clone https://github.com/Double-Bee-24/4-http.git
 
 ```
 
@@ -22,7 +22,7 @@ git clone https://github.com/Double-Bee-24/3-data-tables.git
 
 ## About project
 
-https://double-bee-24.github.io/3-data-tables/ - here you can see how the tables look like
+https://double-bee-24.github.io/4-http/ - here you can see how the tables look like
 
 This project is a JavaScript DataTable component that allows you to display and interact with tabular data. The DataTable is designed to be easily configurable and provides sorting functionality for each column.
 
