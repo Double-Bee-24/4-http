@@ -27,30 +27,114 @@ function createAddButton(tableDiv, config) {
 
 function addInputRow(tableDiv, config) {
     const tbody = tableDiv.querySelector("tbody");
-    const inputRow = tbody.insertRow(0);
+    // console.log(tableDiv.querySelector(".input-row"));
+    if (tableDiv.querySelector(".input-row") === null) {
+        const inputRow = tbody.insertRow(0);
+        inputRow.classList.add("input-row");
 
-    const columns = config.columns;
-    const numberCell = document.createElement("td");
-    numberCell.innerText = "№";
-    inputRow.append(numberCell);
+        const columns = config.columns;
+        const numberCell = document.createElement("td");
+        numberCell.innerText = "№";
+        inputRow.append(numberCell);
 
-    for (let column of columns) {
-        const cell = document.createElement("td");
-        cell.contentEditable = "true";
-        cell.innerText = "Bob";
-        const inputsList = column.input;
-        console.log(JSON.stringify(inputsList));
-        console.log("doubledoor");
+        for (let column of columns) {
+            const cell = document.createElement("td");
+            const columnInput = column.input;
 
-        for(const inputElement in inputsList){
-            const input = document.createElement("input");
-            for (const inputValue in inputElement) {
-                input[inputValue] = inputElement[inputValue];
+            // If we have more than one input - it is an array with objects in configurations
+            if (Array.isArray(columnInput)) {
+                for (let arrayElement of columnInput) {
+                    // Create select element
+                    if (arrayElement.type === "select") {
+                        const selectElement = document.createElement("select");
+                        for (const inputValue in arrayElement) {
+                            if (inputValue === "options") {
+                                const options = arrayElement[inputValue];
+                                console.log(options + " options");
+                                for (const option of options) {
+                                    const optionElement = document.createElement("option");
+                                    optionElement.value = option;
+                                    optionElement.innerText = option;
+                                    selectElement.appendChild(optionElement);
+                                }
+                            } else {
+                                selectElement.setAttribute(inputValue, arrayElement[inputValue]);
+                            }
+                        }
+
+                        cell.appendChild(selectElement);
+                    } else {
+                        // Create input element
+                        const inputElement = document.createElement("input");
+                        inputElement.addEventListener("keydown", () => sendData(event, tbody, config));
+                        // inputElement.addEventListener("focus", () => inputElement.style.border = "1px solid red");
+                        for (const inputValue in arrayElement) {
+                            inputElement[inputValue] = arrayElement[inputValue];
+                        }
+                        cell.appendChild(inputElement);
+                    }
+                }
+            } else { // If we have only one input - it is an object in configurations
+                const inputElement = document.createElement("input");
+                inputElement.addEventListener("keydown", () => sendData(event, tbody, config));
+                // inputElement.addEventListener("focus", () => inputElement.style.border = "1px solid red");
+                for (const inputValue in columnInput) {
+                    inputElement[inputValue] = columnInput[inputValue];
+                }
+                cell.appendChild(inputElement);
             }
-            cell.appendChild(input);
+
+            inputRow.append(cell);
+        }
+    }
+}
+
+async function sendData(event, tbody, config) {
+    const inputFields = tbody.querySelectorAll("input");
+    if (event.keyCode === 13) {
+        let incorrectInputs = 0;
+
+        for (let i = 0; i < inputFields.length; i++) { // Make red border to empty input fields
+            console.log( inputFields[i].required)
+            if (inputFields[i].value === "" && inputFields[i].required === true) { // 'type: file' is for images
+                inputFields[i].style.outline = "2px solid red";
+                incorrectInputs++;
+            }
+        }
+    
+        const columns = config.columns;
+        for(const column of columns) {
+            const columnInput = column.input;
+
+            if(Array.isArray(columnInput)){
+                for(const arrayElement of columnInput){
+                    const columnName = arrayElement.name;
+                    console.log(columnName + " crab");
+                }
+            }else {
+                const columnName = columnInput.name || column.value;
+                console.log(columnName + " crab");
+            }
         }
 
-        inputRow.append(cell);
+        if(incorrectInputs === 0){
+            const url = config.apiUrl;
+            const data = {};
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    body: JSON.stringify(data),
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                const json = await response.json();
+                console.log("Succesfully:", JSON.stringify(json));
+            } catch (error) {
+                console.error("Mistake:", error);
+            }
+        }
     }
 }
 
@@ -99,10 +183,6 @@ function createTableHead(table, config) {
     // numberSymbolTh.classList.add("id");
 }
 
-function getFirstId(data) {
-    return data[0].id;
-}
-
 function addArrowImg(cell) {
     const arrowUp = document.createElement("img");
     arrowUp.setAttribute("src", "images/arrow-up.png");
@@ -121,7 +201,7 @@ function createTableBody(table, config, data) { // Create rows for table body
     // Create row
     let rowNumber = 1;
     for (let row in allUsersList) {
-        console.log(row + " row");
+        // console.log(row + " row");
         const user = allUsersList[row];
         // Create number cell
         const tableRow = tbody.insertRow(rowNumber - 1);
@@ -138,7 +218,7 @@ function createTableBody(table, config, data) { // Create rows for table body
             const columnTitle = column.title;
             if (columnTitle !== "Фото") {
 
-                if (typeof columnValue === 'function') {
+                if (typeof columnValue === "function") {
                     const value = columnValue(user);
                     if (columnTitle === "Колір") {
                         td.appendChild(value);
@@ -186,7 +266,7 @@ async function deleteItem(itemId, table, config) {
             return response.json();
         })
         .then(data => {
-            console.log('Item deleted successfully: ' +  data);
+            console.log('Item deleted successfully: ' + data);
         })
         .catch(error => {
             console.error('Error deleting item: ' + error);
