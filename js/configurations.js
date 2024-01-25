@@ -19,7 +19,7 @@ export const config1 = {
         {
             title: 'Фото',
             value: (user) => `<img src="${user.avatar}" alt="${user.name} ${user.surname}"/>`,
-            input: { type: 'file', name:"avatar", accept: "image/*", required: false }
+            input: { type: 'text', name:"avatar", required: false }
         }
     ],
     apiUrl: "https://mock-api.shpp.me/bbilokin/users"

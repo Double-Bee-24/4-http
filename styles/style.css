@@ -121,6 +121,15 @@ img {
     color: #FF4742;
 }
 
+.edit-button {
+    background: rgb(122, 203, 0);
+    border: 1px solid rgb(122, 203, 0);
+}
+
+.edit-button:hover {
+    color: rgb(122, 203, 0);
+}
+
 .add-button {
     background-color: #0095ff;
     border: 1px solid transparent;
@@ -147,19 +156,24 @@ img {
     white-space: nowrap;
     width: auto;
     left: 700px;
-  }
-  
-  .add-button:hover,
-  .add-button:focus {
+}
+
+.add-button:hover,
+.add-button:focus {
     background-color: #07c;
-  }
-  
-  .add-button:focus {
+}
+
+.add-button:focus {
     box-shadow: 0 0 0 4px rgba(0, 149, 255, .15);
-  }
-  
-  .add-button:active {
+}
+
+.add-button:active {
     background-color: #0064bd;
     box-shadow: none;
-  }
-  
+}
+
+.action-cell {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
