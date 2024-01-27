@@ -82,6 +82,6 @@ function getAge(age) {
         default:
             ageString = `${ageInMonths} місяців`;
     }
-    // return Date.parse(age);
+    
     return ageString;
 }

@@ -1,4 +1,4 @@
-import { setupSortingEvents } from "./sorting_function.js"
+import {sendData, getServerData, changeData, deleteItem} from "./serverRequests.js";
 
 export async function DataTable(config) {
     const tableDiv = document.querySelector(config.parent);
@@ -10,11 +10,9 @@ export async function DataTable(config) {
     table.classList.add("table");
 
     const data = await getServerData(config);
-    console.log(data.length + " length");
 
     createTableHead(table, config);
     createTableBody(table, config, data);
-    // setupSortingEvents(table, data, config);
 }
 
 function createAddButton(tableDiv, config) {
@@ -27,8 +25,7 @@ function createAddButton(tableDiv, config) {
 
 function addInputRow(tableDiv, config, index) {
     const tbody = tableDiv.querySelector("tbody");
-    const thisIndex = index;
-    // console.log(tableDiv.querySelector(".input-row"));
+
     if (tableDiv.querySelector(".input-row") === null) {
         const inputRow = tbody.insertRow(index);
         inputRow.classList.add("input-row");
@@ -51,7 +48,7 @@ function addInputRow(tableDiv, config, index) {
                         for (const inputValue in arrayElement) {
                             if (inputValue === "options") {
                                 const options = arrayElement[inputValue];
-                                console.log(options + " options");
+
                                 for (const option of options) {
                                     const optionElement = document.createElement("option");
                                     optionElement.value = option;
@@ -69,7 +66,6 @@ function addInputRow(tableDiv, config, index) {
                         const inputElement = document.createElement("input");
                         inputElement.addEventListener("keydown", () => sendData(event, tbody, config));
                         inputElement.addEventListener("input", () => setDefaultFrame(inputElement));
-                        // inputElement.addEventListener("focus", () => inputElement.style.border = "1px solid red");
                         for (const inputValue in arrayElement) {
                             inputElement[inputValue] = arrayElement[inputValue];
                         }
@@ -95,130 +91,29 @@ function setDefaultFrame(inputElement) {
     inputElement.style.outline = "initial";
 }
 
-async function sendData(event, tbody, config) {
-    const inputFields = tbody.querySelectorAll("input");
-    const selectFields = tbody.querySelectorAll("select");
-    let selectIndex = 0;
-
-    if (event.keyCode === 13) {
-        let incorrectInputs = 0;
-
-        for (let i = 0; i < inputFields.length; i++) { // Make red border to empty input fields
-            console.log(inputFields[i].required);
-            if (inputFields[i].value === "" && inputFields[i].required === true) { // 'type: file' is for images
-                inputFields[i].style.outline = "2px solid red";
-                incorrectInputs++;
-            }
-        }
-
-        if (incorrectInputs === 0) {
-            const url = config.apiUrl;
-
-            // Gain data to send
-            const data = {};
-            const columns = config.columns;
-            for (let i = 0; i < inputFields.length; i++) {
-                const column = columns[i];
-                const columnInput = column.input;
-
-                if (Array.isArray(columnInput)) {
-                    for (const arrayElement of columnInput) {
-                        const columnName = arrayElement.name;
-
-                        data[columnName] = inputFields[i].value;
-                        if (arrayElement.type === "select") {
-                            data[columnName] = selectFields[selectIndex++].value;
-                        }
-
-                        if (columnName === "price") {
-                            data[columnName] = +inputFields[i].value;
-                        }
-                    }
-                } else {
-                    const columnName = columnInput.name || column.value;
-                    data[columnName] = inputFields[i].value;
-
-                    if (columnName === "avatar" && inputFields[i].value === "") { // Set default no-avatar image
-                        data[columnName] = "../images/no-avatar.jpg";
-                    }
-                }
-            }
-
-            try {
-                const response = await fetch(url, {
-                    method: "POST",
-                    body: JSON.stringify(data),
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-                const json = await response.json();
-                console.log("Succesfully:", JSON.stringify(json));
-            } catch (error) {
-                console.error("Mistake:", error);
-            }
-
-            const updatedData = await getServerData(config);
-            const table = tbody.parentNode;
-            // console.log(table + " parentNode")
-            createTableBody(table, config, updatedData);
-        }
-    }
-}
-
-async function getServerData(config) {
-    try {
-        const serverResponse = await fetch(config.apiUrl);
-
-        const serverData = await serverResponse.json();
-        console.log(serverData);
-
-        return serverData;
-    } catch (error) {
-        console.log("Fetch error: " + error);
-    }
-}
-
 function createTableHead(table, config) {
     let thead = document.createElement("thead");
     table.appendChild(thead);
     const titleRow = thead.insertRow(0);
 
-    // Add symbol "№"
-    const numberSymbolTh = document.createElement("th");
-    const numberSymbolNode = document.createTextNode("№");
-    numberSymbolTh.appendChild(numberSymbolNode);
+    const numberSymbolTh = document.createElement("th"); // Add symbol "№"
+    numberSymbolTh.innerText = "№";
+
     titleRow.appendChild(numberSymbolTh);
     numberSymbolTh.classList.add("id");
 
-    addArrowImg(numberSymbolTh);
-
-    for (let i = 1; i <= config.columns.length; i++) {
+    config.columns.forEach(element => {
         const th = document.createElement("th");
-        const node = document.createTextNode(config.columns[i - 1].title);
-        th.appendChild(node);
+        th.innerText = element.title;
         titleRow.appendChild(th);
+    });
 
-        if (config.columns[i - 1].title !== "Фото") {
-            addArrowImg(th);
-        }
-    }
-
-    // Add actions column
-    const actionCell = document.createElement("th");
+    const actionCell = document.createElement("th"); // Add actions column
     actionCell.innerText = "Дії";
     titleRow.appendChild(actionCell);
-    // numberSymbolTh.classList.add("id");
 }
 
-function addArrowImg(cell) {
-    const arrowUp = document.createElement("img");
-    arrowUp.setAttribute("src", "images/arrow-up.png");
-    arrowUp.classList.add("arrow-iamge")
-    cell.appendChild(arrowUp);
-}
-
-function createTableBody(table, config, data) { // Create rows for table body
+export function createTableBody(table, config, data) { // Create rows for table body
     if (table.querySelector("tbody") !== null) {
         table.querySelector("tbody").remove();
     }
@@ -229,16 +124,15 @@ function createTableBody(table, config, data) { // Create rows for table body
     // Create row
     let rowNumber = 1;
     for (let row in allUsersList) {
-        // console.log(row + " row");
+ 
         const user = allUsersList[row];
         // Create number cell
         const tableRow = tbody.insertRow(rowNumber - 1);
         const numberTd = document.createElement("td");
-        const numberTdNode = document.createTextNode(rowNumber);
-        numberTd.appendChild(numberTdNode);
+        numberTd.innerText = rowNumber
         tableRow.appendChild(numberTd);
         rowNumber++;
-        // Create sells
+        // Create cells
         const columns = config.columns;
         for (let column of columns) {
             const td = document.createElement("td");
@@ -251,12 +145,10 @@ function createTableBody(table, config, data) { // Create rows for table body
                     if (columnTitle === "Колір") {
                         td.appendChild(value);
                     } else {
-                        const node = document.createTextNode(value);
-                        td.appendChild(node);
+                        td.innerText = value
                     }
                 } else {
-                    const node = document.createTextNode(user[columnValue]);
-                    td.appendChild(node);
+                    td.innerText = user[columnValue];
                 }
                 tableRow.appendChild(td);
             } else {
@@ -280,22 +172,25 @@ function createTableBody(table, config, data) { // Create rows for table body
         editButton.classList.add("edit-button");
         actionCell.append(editButton);
         editButton.innerText = "Редагувати";
-        editButton.addEventListener("click", () => setInputRow(tableRow, config, allUsersList));
+        editButton.addEventListener("click", () => setInputRow(tableRow, config, allUsersList, table, editButton));
 
         tableRow.appendChild(actionCell);
     }
 }
 
-function setInputRow(row, config, allUsersList) {
+function setInputRow(row, config, allUsersList, table) {
     const cells = row.querySelectorAll("td");
     
     const rowNumber = cells[0].innerText;
     let objectIndex = 1;
     let actualObject;
+    let actualObjectId;
 
     for(const key in allUsersList){
         if(objectIndex === +rowNumber){
             actualObject = allUsersList[key];
+            actualObjectId = key;
+            break;
         }
         objectIndex++;
     }
@@ -320,10 +215,9 @@ function setInputRow(row, config, allUsersList) {
                         for (const inputValue in arrayElement) {
                             if (inputValue === "options") {
                                 const options = arrayElement[inputValue];
-                                console.log(options + " options");
+
                                 for (const option of options) {
                                     const optionElement = document.createElement("option");
-                                    // optionElement.value = actualObject[column][value];
                                     optionElement.innerText = option;
                                     selectElement.appendChild(optionElement);
                                 }
@@ -336,60 +230,36 @@ function setInputRow(row, config, allUsersList) {
                     } else {
                         // Create input element
                         const inputElement = document.createElement("input");
-                        inputElement.addEventListener("keydown", () => sendData(event, tbody, config));
-                        inputElement.addEventListener("input", () => setDefaultFrame(inputElement));
+                        inputElement.value = actualObject[arrayElement.name];
+                        inputElement.type = arrayElement.type;
 
-                        for (const inputValue in arrayElement) {
-                            inputElement[inputValue] = arrayElement[inputValue];
-                            arrayElement.value = "fish";
-                        }
+                        
+                        // alert(row);
+                        inputElement.addEventListener("keydown", () => changeData(event, table, config, row, actualObjectId));
+                        inputElement.addEventListener("input", () => setDefaultFrame(inputElement));
+                        cell.innerText = "";
                         cell.appendChild(inputElement);
                     }
                 }
             } else { // If we have only one input - it is an object in configurations
                 const inputElement = document.createElement("input");
-                inputElement.addEventListener("keydown", () => sendData(event, tbody, config));
+                // alert(row);
+
+                inputElement.addEventListener("keydown", () => changeData(event, table, config, row, actualObjectId));
                 inputElement.addEventListener("input", () => setDefaultFrame(inputElement));
+
                 for (const inputValue in columnInput) {
                     inputElement[inputValue] = columnInput[inputValue];
                     inputElement.value = actualObject[column.value]  || actualObject[column.input.name];
-                    console.log(actualObject[column.input.name]);
-                    console.log(inputElement.value);
                     if(inputElement.type === "date"){
-
+                        const date = actualObject[column.input.name].split("T")[0];
+                        inputElement.value = date;
                     }
                 }
+                cell.innerText = "";
                 cell.appendChild(inputElement);
             }
 
         }
-    }
-}
-
-async function deleteItem(itemId, table, config) {
-    console.log(table.querySelector("tbody"))
-    console.log("squirell");
-
-    await fetch(`${config.apiUrl}/${itemId}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Item deleted successfully:', data);
-        })
-        .catch(error => {
-            console.error('Error deleting item:', error);
-        });
-
-    const updatedData = await getServerData(config);
-
-    createTableBody(table, config, updatedData);
+    } 
 }
